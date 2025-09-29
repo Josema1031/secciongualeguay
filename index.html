@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Registro</title>
+  <link rel="stylesheet" href="styles.css">
+ <link rel="icon" type="image//logo-32.png.jpg" sizes="32x32" href="image/logo-32.png.jpg">
+<link rel="icon" type="image/png" sizes="192x192" href="image/logo-192.png.jpg">
+<link rel="apple-touch-icon" href="image/logo-512.png.jpg">
+
+
+</head>
+<body>
+  <h1>Sistema de Registro MTO Seccion "Gualeguay"</h1>
+
+  <form id="registroForm">
+    <input type="date" id="fecha" required>
+    <select id="area" required>
+      <option value="">-- Seleccionar Área --</option>
+      <option value="Personal">Personal</option>
+      <option value="Logística">Logística</option>
+      <option value="Inteligencia">Inteligencia</option>
+       <option value="Operaciones">Operaciones</option>
+       <option value="Ayudantia">Ayudantia</option>
+       
+    </select>
+    <input type="text" id="mto" placeholder="Nro de MTO" required>
+    <input type="text" id="destino" placeholder="Destino" required>
+    <input type="text" id="referencia" placeholder="Referencia" required>
+    <input type="time" id="hora" required>
+    <input type="text" id="operador" placeholder="Nombre del Operador" required>
+    <button type="submit">Guardar</button>
+  </form>
+
+  <h2>Registros</h2>
+<input type="text" id="buscar" placeholder="Buscar...">
+
+<div style="margin: 10px 0;">
+  <button onclick="exportarCSV()">⬇️ Exportar a CSV</button>
+  <button class="btn-exportar" onclick="exportarPDF()">⬇️ Exportar a PDF</button>
+
+</div>
+
+<div id="filtros" style="margin: 10px 0;">
+  <button onclick="filtrarArea('todos')">Todos</button>
+  <button onclick="filtrarArea('Personal')">Personal</button>
+  <button onclick="filtrarArea('Logística')">Logística</button>
+  <button onclick="filtrarArea('Operaciones')">Operaciones</button>
+  <button onclick="filtrarArea('Inteligencia')">Inteligencia</button>
+  <button onclick="filtrarArea('Ayudantia')">Ayudantia</button>
+</div>
+
+  <table id="tablaRegistros">
+   <thead>
+  <tr>
+    <th data-campo="fecha" onclick="ordenarPor('fecha')">Fecha</th>
+    <th data-campo="area" onclick="ordenarPor('area')">Área</th>
+    <th data-campo="mto" onclick="ordenarPor('mto')">MTO</th>
+    <th data-campo="destino" onclick="ordenarPor('destino')">Destino</th>
+    <th data-campo="referencia" onclick="ordenarPor('referencia')">Referencia</th>
+    <th data-campo="hora" onclick="ordenarPor('hora')">Hora</th>
+    <th data-campo="operador" onclick="ordenarPor('operador')">Operador</th>
+    <th>Acciones</th>
+  </tr>
+</thead>
+
+
+    <tbody></tbody>
+  </table>
+
+  
+  <!-- jsPDF principal -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Plugin para tablas en PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<!-- Tu script -->
+<script src="script.js"></script>
+
+</body>
+</html>

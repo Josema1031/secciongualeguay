@@ -1,0 +1,158 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #f4f4f4;
+}
+
+h1, h2 {
+  text-align: center;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+form input, form select, form button {
+  padding: 8px;
+  font-size: 14px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+table th {
+  background: #007bff;
+  color: white;
+  padding: 10px;
+}
+
+table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+button {
+  padding: 5px 10px;
+  margin: 2px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.btn-editar {
+  background-color: #ffc107;
+  color: black;
+}
+
+.btn-eliminar {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-editar:hover {
+  background-color: #e0a800;
+}
+
+.btn-eliminar:hover {
+  background-color: #c82333;
+}
+
+button {
+  padding: 7px 12px;
+  margin: 3px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.btn-exportar {
+  background-color: #28a745;
+  color: white;
+}
+
+th {
+  cursor: pointer;
+  position: relative;
+}
+
+th::after {
+  content: "⇅";
+  font-size: 12px;
+  margin-left: 5px;
+  color: #ddd;
+}
+
+th.orden-asc::after {
+  content: "↑";
+  color: #000;
+}
+
+th.orden-desc::after {
+  content: "↓";
+  color: #000;
+}
+
+.area-personal {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 3px 6px;
+  display: inline-block;
+}
+
+.area-inteligencia {
+  background-color:#e0a800;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 3px 6px;
+  display: inline-block;
+}
+.area-ayudantia {
+  background-color:blue;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 3px 6px;
+  display: inline-block;
+}
+
+.area-logistica {
+  background-color: #28a745;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 3px 6px;
+  display: inline-block;
+}
+
+.area-operaciones {
+  background-color: #dc3545;
+  color: white;
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 3px 6px;
+  display: inline-block;
+}
