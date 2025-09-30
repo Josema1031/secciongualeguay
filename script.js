@@ -9,10 +9,11 @@ const firebaseConfig = {
   apiKey: "AIzaSyCi7lYGKlX7r3p5tlLQamdV2CgGzyHnMog",
   authDomain: "seccion-gualeguay.firebaseapp.com",
   projectId: "seccion-gualeguay",
-  storageBucket: "seccion-gualeguay.appspot.com", // 🔧 corregido (.appspot.com)
+  storageBucket: "seccion-gualeguay.firebasestorage.app",
   messagingSenderId: "135545186617",
   appId: "1:135545186617:web:0a3707336fd688f113a0e8"
 };
+
 
 // === INICIALIZAR FIREBASE ===
 const app = initializeApp(firebaseConfig);
