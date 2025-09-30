@@ -1,9 +1,31 @@
+// === IMPORTS DE FIREBASE ===
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// === CONFIGURACIÓN DE TU PROYECTO (Firebase Console) ===
+const firebaseConfig = {
+  apiKey: "AIzaSyCi7lYGKlX7r3p5tlLQamdV2CgGzyHnMog",
+  authDomain: "seccion-gualeguay.firebaseapp.com",
+  projectId: "seccion-gualeguay",
+  storageBucket: "seccion-gualeguay.appspot.com", // 🔧 corregido (.appspot.com)
+  messagingSenderId: "135545186617",
+  appId: "1:135545186617:web:0a3707336fd688f113a0e8"
+};
+
+// === INICIALIZAR FIREBASE ===
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// === VARIABLES DEL SISTEMA ===
 const form = document.getElementById("registroForm");
 const tabla = document.querySelector("#tablaRegistros tbody");
 const buscar = document.getElementById("buscar");
 
-let registros = JSON.parse(localStorage.getItem("registros")) || [];
+let registros = []; // se llenará desde Firestore
 
+// === MOSTRAR REGISTROS EN TABLA ===
 function mostrarRegistros(data = registros) {
   tabla.innerHTML = "";
   data.forEach((reg, index) => {
@@ -33,16 +55,24 @@ function mostrarRegistros(data = registros) {
   });
 }
 
+// === CARGAR REGISTROS EN VIVO (onSnapshot) ===
+onSnapshot(collection(db, "registros"), (snapshot) => {
+  registros = [];
+  snapshot.forEach(docSnap => {
+    registros.push({ id: docSnap.id, ...docSnap.data() });
+  });
+  mostrarRegistros();
+});
 
-
-function eliminarRegistro(i) {
+// === ELIMINAR REGISTRO ===
+async function eliminarRegistro(i) {
   if (confirm("¿Seguro que deseas eliminar este registro?")) {
-    registros.splice(i, 1);
-    localStorage.setItem("registros", JSON.stringify(registros));
-    mostrarRegistros();
+    const id = registros[i].id;
+    await deleteDoc(doc(db, "registros", id));
   }
 }
 
+// === EDITAR REGISTRO ===
 function editarRegistro(i) {
   let reg = registros[i];
   document.getElementById("fecha").value = reg.fecha;
@@ -53,14 +83,12 @@ function editarRegistro(i) {
   document.getElementById("hora").value = reg.hora;
   document.getElementById("operador").value = reg.operador;
 
-  // Borrar el registro viejo y esperar que lo reemplacen al guardar
-  registros.splice(i, 1);
-  localStorage.setItem("registros", JSON.stringify(registros));
-  mostrarRegistros();
+  // Guardar el ID en el formulario para actualizar
+  form.dataset.editId = reg.id;
 }
 
-
-form.addEventListener("submit", (e) => {
+// === GUARDAR O ACTUALIZAR DESDE EL FORM ===
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   let nuevo = {
     fecha: document.getElementById("fecha").value,
@@ -71,47 +99,34 @@ form.addEventListener("submit", (e) => {
     hora: document.getElementById("hora").value,
     operador: document.getElementById("operador").value
   };
-  registros.push(nuevo);
-  localStorage.setItem("registros", JSON.stringify(registros));
-  mostrarRegistros();
+
+  if (form.dataset.editId) {
+    // Actualizar
+    const id = form.dataset.editId;
+    await updateDoc(doc(db, "registros", id), nuevo);
+    delete form.dataset.editId;
+  } else {
+    // Crear nuevo
+    await addDoc(collection(db, "registros"), nuevo);
+  }
+
   form.reset();
 });
 
+// === BÚSQUEDA ===
 buscar.addEventListener("input", () => {
   let texto = buscar.value.toLowerCase();
-  registrosFiltrados = registros.filter(reg =>
+  let filtrados = registros.filter(reg =>
     Object.values(reg).some(val =>
       val.toString().toLowerCase().includes(texto)
     )
   );
-  mostrarRegistros(registrosFiltrados);
+  mostrarRegistros(filtrados);
 });
 
 
-mostrarRegistros();
 
-function exportarCSV() {
-  if (registros.length === 0) {
-    alert("No hay registros para exportar.");
-    return;
-  }
-
-  // Encabezados
-  let csv = "Fecha,Área,MTO,Destino,Referencia,Hora,Operador\n";
-
-  // Filas
-  registros.forEach(reg => {
-    csv += `${reg.fecha},${reg.area},${reg.mto},${reg.destino},${reg.referencia},${reg.hora},${reg.operador}\n`;
-  });
-
-  // Descargar
-  let blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  let link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "registros.csv";
-  link.click();
-}
-
+// === EXPORTAR PDF ===
 async function exportarPDF() {
   if (registros.length === 0) {
     alert("No hay registros para exportar.");
@@ -119,124 +134,63 @@ async function exportarPDF() {
   }
 
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF("p", "mm", "a4"); // 📄 A4 vertical
+  const docPDF = new jsPDF("p", "mm", "a4");
 
-  // === Encabezado centrado ===
-  doc.setFontSize(16);
-  const titulo = "Registro de MTO Secion Gualeguay";
-  const pageWidth = doc.internal.pageSize.getWidth();
-  doc.text(titulo, pageWidth / 2, 20, { align: "center" });
+  // Encabezado centrado
+  docPDF.setFontSize(16);
+  const titulo = "Registro de MTO - Sección Gualeguay";
+  const pageWidth = docPDF.internal.pageSize.getWidth();
+  docPDF.text(titulo, pageWidth / 2, 20, { align: "center" });
 
-  // === Encabezados y datos ===
   const headers = [["Fecha", "Área", "MTO", "Destino", "Referencia", "Hora", "Operador"]];
   const data = registros.map(reg => [
-    reg.fecha,
-    reg.area,
-    reg.mto,
-    reg.destino,
-    reg.referencia,
-    reg.hora,
-    reg.operador
+    reg.fecha, reg.area, reg.mto, reg.destino, reg.referencia, reg.hora, reg.operador
   ]);
 
-  // === Dibujar tabla ===
-  doc.autoTable({
+  docPDF.autoTable({
     head: headers,
     body: data,
     startY: 30,
     theme: "grid",
-    styles: {
-      fontSize: 9,
-      cellPadding: 2,
-      halign: "center",
-      valign: "middle"
-    },
-    headStyles: {
-      fillColor: [0, 123, 255],
-      textColor: 255,
-      halign: "center"
-    },
-    // 👉 auto ajusta los anchos
+    styles: { fontSize: 9, cellPadding: 2, halign: "center", valign: "middle" },
+    headStyles: { fillColor: [0, 123, 255], textColor: 255, halign: "center" },
     tableWidth: "auto",
-    columnStyles: {
-      0: { cellWidth: 20 }, // Fecha
-      1: { cellWidth: 25 }, // Área
-      2: { cellWidth: 15 }, // MTO
-      3: { cellWidth: 30 }, // Destino
-      4: { cellWidth: 60 }, // Referencia
-      5: { cellWidth: 20 }, // Hora
-      6: { cellWidth: 30 }  // Operador
-    },
-   margin: { top: 25, bottom: 15, left: 5 },
-    didDrawPage: function (data) {
-      // Pie de página
-      let str = "Página " + doc.internal.getNumberOfPages();
-      doc.setFontSize(9);
-      doc.text(str, pageWidth - 20, doc.internal.pageSize.height - 10, { align: "right" });
+    margin: { top: 25, bottom: 15, left: 5 },
+    didDrawPage: function () {
+      let str = "Página " + docPDF.internal.getNumberOfPages();
+      docPDF.setFontSize(9);
+      docPDF.text(str, pageWidth - 20, docPDF.internal.pageSize.height - 10, { align: "right" });
     }
   });
 
-  doc.save("registros.pdf");
+  docPDF.save("registros.pdf");
 }
 
-
-
-let ordenActual = { campo: null, asc: true };
-let registrosFiltrados = [...registros]; // para búsqueda + orden
-
-function ordenarPor(campo) {
-  if (ordenActual.campo === campo) {
-    // Si vuelvo a hacer clic en la misma columna → cambiar de asc a desc
-    ordenActual.asc = !ordenActual.asc;
-  } else {
-    ordenActual.campo = campo;
-    ordenActual.asc = true;
-  }
-
-  // Ordenar los registros filtrados (no todos)
-  let registrosOrdenados = [...registrosFiltrados].sort((a, b) => {
-    let valA = a[campo];
-    let valB = b[campo];
-
-    // Si son números
-    if (!isNaN(valA) && !isNaN(valB)) {
-      valA = Number(valA);
-      valB = Number(valB);
-    } 
-    // Si parecen fechas
-    else if (Date.parse(valA) && Date.parse(valB)) {
-      valA = new Date(valA);
-      valB = new Date(valB);
-    } 
-    // Si son textos
-    else {
-      valA = valA.toString().toLowerCase();
-      valB = valB.toString().toLowerCase();
-    }
-
-    if (valA < valB) return ordenActual.asc ? -1 : 1;
-    if (valA > valB) return ordenActual.asc ? 1 : -1;
-    return 0;
-  });
-
-  // Quitar clases previas
-  document.querySelectorAll("th").forEach(th => {
-    th.classList.remove("orden-asc", "orden-desc");
-    if (th.dataset.campo === campo) {
-      th.classList.add(ordenActual.asc ? "orden-asc" : "orden-desc");
-    }
-  });
-
-  mostrarRegistros(registrosOrdenados);
-  registrosFiltrados = registrosOrdenados; // mantener consistencia
-}
-
+// === FILTRAR POR ÁREA ===
 function filtrarArea(area) {
   if (area === "todos") {
-    registrosFiltrados = [...registros]; // mostrar todos
+    mostrarRegistros();
   } else {
-    registrosFiltrados = registros.filter(reg => reg.area === area);
+    mostrarRegistros(registros.filter(r => r.area === area));
   }
-  mostrarRegistros(registrosFiltrados);
 }
 
+// === ORDENAR POR CAMPO ===
+function ordenarPor(campo) {
+  if (campo === "mto") {
+    // Orden numérico de mayor a menor
+    registros.sort((a, b) => Number(b.mto) - Number(a.mto));
+  } else {
+    // Orden alfabético de A a Z
+    registros.sort((a, b) => a[campo].localeCompare(b[campo]));
+  }
+  mostrarRegistros();
+}
+
+
+// 🔧 Exponer funciones al scope global
+window.eliminarRegistro = eliminarRegistro;
+window.editarRegistro = editarRegistro;
+window.exportarPDF = exportarPDF;
+window.filtrarArea = filtrarArea;
+window.ordenarPor = ordenarPor;
