@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Registr MTO Seccion GUALEGUAY</title>
   <link rel="stylesheet" href="styles.css">
 
@@ -10,62 +12,175 @@
   <link rel="icon" type="image/png" sizes="192x192" href="image/logo-192.png.jpg">
   <link rel="apple-touch-icon" href="image/logo-512.png.jpg">
 </head>
+
 <body>
-  <h1>Sistema de Registro MTO Sección "Gualeguay"</h1>
 
-  <!-- Formulario -->
-  <form id="registroForm">
-    <input type="date" id="fecha" required>
-    <select id="area" required>
-      <option value="">-- Seleccionar Área --</option>
-      <option value="Personal">Personal</option>
-      <option value="Logística">Logística</option>
-      <option value="Inteligencia">Inteligencia</option>
-      <option value="Operaciones">Operaciones</option>
-      <option value="Ayudantia">Ayudantia</option>
-    </select>
-    <input type="text" id="mto" placeholder="Nro de MTO" required>
-    <input type="text" id="destino" placeholder="Destino" required>
-    <input type="text" id="referencia" placeholder="Referencia" required>
-    <input type="time" id="hora" required>
-    <input type="text" id="operador" placeholder="Nombre del Operador" required>
-    <button type="submit">Guardar</button>
-  </form>
+  <button id="btnMenuAcciones" class="btn-menu-acciones" onclick="toggleMenuAcciones()">
+    ☰
+  </button>
 
-  <h2>Registros MTO</h2>
-  <input type="text" id="buscar" placeholder="Buscar...">
+ <div id="dropdownAcciones" class="dropdown-acciones">
+  <button onclick="abrirTablero()">📋 Tablero de control</button>
+  <button onclick="abrirEstadistica()">📊 Estadística mensual</button>
+  <button onclick="abrirHistorico()">🗂️ Carga histórica</button>
+</div>
 
-  <!-- Botones de exportación -->
-  <div style="margin: 10px 0;">
-    <button class="btn-exportar" onclick="exportarPDF()">⬇️ Exportar a PDF</button>
+
+  <div class="contenedor-principal">
+    <h1>Sistema de Registro MTO Sección "Gualeguay"</h1>
+
+    <!-- Formulario -->
+    <form id="registroForm">
+      <input type="date" id="fecha" required>
+      <select id="area" required>
+        <option value="">-- Seleccionar Área --</option>
+        <option value="Personal">Personal</option>
+        <option value="Logística">Logística</option>
+        <option value="Inteligencia">Inteligencia</option>
+        <option value="Operaciones">Operaciones</option>
+        <option value="Ayudantia">Ayudantia</option>
+      </select>
+      <input type="text" id="mto" placeholder="Nro de MTO" required>
+      <input type="text" id="destino" placeholder="Destino" required>
+      <input type="text" id="referencia" placeholder="Referencia" required>
+      <input type="time" id="hora" required>
+      <input type="text" id="operador" placeholder="Nombre del Operador" required>
+      <button type="submit">Guardar</button>
+    </form>
+
+    <div class="panel-acciones-wrap">
+      <button id="toggleTableroBtn" class="btn-tablero btn-tablero-flotante" type="button">📋 Tablero de
+        control</button>
+      <button id="toggleEstadisticaBtn" class="btn-tablero btn-tablero-secundario" type="button">📊 Estadística
+        mensual</button>
+      <button id="toggleHistoricoBtn" class="btn-tablero btn-tablero-terciario" type="button">🗂️ Carga
+        histórica</button>
+    </div>
+
+    <div id="tableroOverlay" class="tablero-overlay tablero-oculto"></div>
+    <div id="estadisticaOverlay" class="tablero-overlay tablero-oculto"></div>
+    <div id="historicoOverlay" class="tablero-overlay tablero-oculto"></div>
+    <section id="tableroSection" class="tablero-modal tablero-oculto" aria-hidden="true">
+      <div class="tablero-modal-header">
+        <div>
+          <h2>Tablero de control de procedimientos</h2>
+          <p class="subtexto-panel">Marcá en tiempo real cada procedimiento realizado por el personal.</p>
+        </div>
+        <button id="cerrarTableroBtn" class="btn-cerrar-tablero" type="button" aria-label="Cerrar tablero">✕</button>
+      </div>
+
+      <div id="resumenTablero" class="resumen-grid"></div>
+
+      <div class="tabla-tablero-wrap">
+        <table id="tablaTableroControl" class="tabla-tablero-control">
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Preventivo</th>
+              <th>CNRT</th>
+              <th>Artículo 27</th>
+              <th>SENASA</th>
+              <th>Artículo 24</th>
+              <th>Polcom</th>
+              <th>Actividades Judiciales</th>
+              <th>Comisión de Servicio</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="estadisticaSection" class="tablero-modal tablero-modal-compacto tablero-oculto" aria-hidden="true">
+      <div class="tablero-modal-header">
+        <div>
+          <h2>Estadística mensual de procedimientos</h2>
+          <p class="subtexto-panel">Consultá cuántos procedimientos se realizaron por mes y por categoría.</p>
+        </div>
+        <button id="cerrarEstadisticaBtn" class="btn-cerrar-tablero" type="button"
+          aria-label="Cerrar estadística">✕</button>
+      </div>
+
+      <div class="estadistica-filtros">
+        <div class="campo-filtro">
+          <label for="mesEstadistica">Mes</label>
+          <select id="mesEstadistica"></select>
+        </div>
+        <div class="campo-filtro">
+          <label for="anioEstadistica">Año</label>
+          <select id="anioEstadistica"></select>
+        </div>
+      </div>
+
+      <div id="estadisticaResumen" class="resumen-grid"></div>
+    </section>
+
+    <section id="historicoSection" class="tablero-modal tablero-modal-compacto tablero-oculto" aria-hidden="true">
+      <div class="tablero-modal-header">
+        <div>
+          <h2>Carga histórica mensual</h2>
+          <p class="subtexto-panel">Cargá manualmente los totales de meses anteriores para que aparezcan en la
+            estadística mensual.</p>
+        </div>
+        <button id="cerrarHistoricoBtn" class="btn-cerrar-tablero" type="button"
+          aria-label="Cerrar carga histórica">✕</button>
+      </div>
+
+      <div class="estadistica-filtros">
+        <div class="campo-filtro">
+          <label for="mesHistorico">Mes</label>
+          <select id="mesHistorico"></select>
+        </div>
+        <div class="campo-filtro">
+          <label for="anioHistorico">Año</label>
+          <select id="anioHistorico"></select>
+        </div>
+      </div>
+
+      <div class="form-historico-grid" id="historicoCampos"></div>
+
+      <div class="historico-acciones">
+        <button id="guardarHistoricoBtn" class="btn-tablero" type="button">💾 Guardar histórico</button>
+      </div>
+    </section>
+
+    <h2>Registros MTO</h2>
+    <input type="text" id="buscar" placeholder="Buscar...">
+
+    <!-- Botones de exportación -->
+    <div style="margin: 10px 0;">
+      <button class="btn-exportar" onclick="exportarPDF()">⬇️ Exportar a PDF</button>
+    </div>
+
+    <!-- Filtros -->
+    <div id="filtros" style="margin: 10px 0;">
+      <button onclick="filtrarArea('todos')">Todos</button>
+      <button onclick="filtrarArea('Personal')">Personal</button>
+      <button onclick="filtrarArea('Logística')">Logística</button>
+      <button onclick="filtrarArea('Operaciones')">Operaciones</button>
+      <button onclick="filtrarArea('Inteligencia')">Inteligencia</button>
+      <button onclick="filtrarArea('Ayudantia')">Ayudantia</button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="tabla-principal-wrap">
+      <table id="tablaRegistros">
+        <thead>
+          <tr>
+            <th data-campo="fecha" onclick="ordenarPor('fecha')">Fecha</th>
+            <th data-campo="area" onclick="ordenarPor('area')">Área</th>
+            <th data-campo="mto" onclick="ordenarPor('mto')">MTO</th>
+            <th data-campo="destino" onclick="ordenarPor('destino')">Destino</th>
+            <th data-campo="referencia" onclick="ordenarPor('referencia')">Referencia</th>
+            <th data-campo="hora" onclick="ordenarPor('hora')">Hora</th>
+            <th data-campo="operador" onclick="ordenarPor('operador')">Operador</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
-
-  <!-- Filtros -->
-  <div id="filtros" style="margin: 10px 0;">
-    <button onclick="filtrarArea('todos')">Todos</button>
-    <button onclick="filtrarArea('Personal')">Personal</button>
-    <button onclick="filtrarArea('Logística')">Logística</button>
-    <button onclick="filtrarArea('Operaciones')">Operaciones</button>
-    <button onclick="filtrarArea('Inteligencia')">Inteligencia</button>
-    <button onclick="filtrarArea('Ayudantia')">Ayudantia</button>
-  </div>
-
-  <!-- Tabla -->
-  <table id="tablaRegistros">
-    <thead>
-      <tr>
-        <th data-campo="fecha" onclick="ordenarPor('fecha')">Fecha</th>
-        <th data-campo="area" onclick="ordenarPor('area')">Área</th>
-        <th data-campo="mto" onclick="ordenarPor('mto')">MTO</th>
-        <th data-campo="destino" onclick="ordenarPor('destino')">Destino</th>
-        <th data-campo="referencia" onclick="ordenarPor('referencia')">Referencia</th>
-        <th data-campo="hora" onclick="ordenarPor('hora')">Hora</th>
-        <th data-campo="operador" onclick="ordenarPor('operador')">Operador</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 
   <!-- Librerías para PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -74,4 +189,5 @@
   <!-- Script principal -->
   <script type="module" src="script.js"></script>
 </body>
+
 </html>
