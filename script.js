@@ -595,13 +595,200 @@ window.ordenarPor = ordenarPor;
 window.toggleMenuAcciones = function toggleMenuAcciones() {
   const menu = document.getElementById("dropdownAcciones");
   menu.style.display = menu.style.display === "block" ? "none" : "block";
-}
-
+};
 document.addEventListener("click", function(e) {
-  const contenedor = document.querySelector(".menu-acciones");
+  const boton = document.getElementById("btnMenuAcciones");
   const menu = document.getElementById("dropdownAcciones");
 
-  if (contenedor && !contenedor.contains(e.target)) {
+  if (!boton.contains(e.target) && !menu.contains(e.target)) {
     menu.style.display = "none";
+  }
+});
+
+
+// === CUENTA KILÓMETROS DE PATRULLAS (FIREBASE) ===
+const kmSection = document.getElementById("kmSection");
+const kmOverlay = document.getElementById("kmOverlay");
+const cerrarKmBtn = document.getElementById("cerrarKmBtn");
+const guardarKmBtn = document.getElementById("guardarKmBtn");
+const limpiarKmBtn = document.getElementById("limpiarKmBtn");
+const resumenKm = document.getElementById("resumenKm");
+const tablaKmBody = document.getElementById("tablaKmBody");
+
+let registrosKm = [];
+
+function periodoActualKm() {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function normalizarFechaKm(fecha) {
+  if (!fecha) return "Sin fecha";
+  const [anio, mes, dia] = fecha.split("-");
+  return `${dia}/${mes}/${anio}`;
+}
+
+function calcularKmRecorridos(registro) {
+  if (registro.kmRecorridos !== undefined) return Math.max(0, Number(registro.kmRecorridos || 0));
+  return Math.max(0, Number(registro.kmFinal || 0) - Number(registro.kmInicial || 0));
+}
+
+function renderCuentaKm() {
+  if (!resumenKm || !tablaKmBody) return;
+
+  const periodo = periodoActualKm();
+  const registrosDelMes = registrosKm.filter(reg => String(reg.fecha || "").slice(0, 7) === periodo);
+
+  const totalPatrullas = registrosDelMes.length;
+  const totalKm = registrosDelMes.reduce((acc, reg) => acc + calcularKmRecorridos(reg), 0);
+  const kmComision = registrosDelMes
+    .filter(reg => reg.tipo === "comision")
+    .reduce((acc, reg) => acc + calcularKmRecorridos(reg), 0);
+  const kmPatrulla = totalKm - kmComision;
+
+  resumenKm.innerHTML = `
+    <div class="resumen-card resumen-destacado">
+      <span class="resumen-titulo">Patrullas / servicios del mes</span>
+      <strong class="resumen-numero">${totalPatrullas}</strong>
+    </div>
+    <div class="resumen-card">
+      <span class="resumen-titulo">Kilómetros totales</span>
+      <strong class="resumen-numero">${totalKm}</strong>
+    </div>
+    <div class="resumen-card">
+      <span class="resumen-titulo">Km Operativo</span>
+      <strong class="resumen-numero">${kmPatrulla}</strong>
+    </div>
+    <div class="resumen-card">
+      <span class="resumen-titulo">Km Admistrativo</span>
+      <strong class="resumen-numero">${kmComision}</strong>
+    </div>
+  `;
+
+  tablaKmBody.innerHTML = registrosDelMes.length ? registrosDelMes.map(reg => `
+    <tr>
+      <td>${normalizarFechaKm(reg.fecha)}</td>
+      <td>${reg.movil || "-"}</td>
+      <td>${reg.tipo === "comision" ? "Comision Administrativo" : "Patrulla/Comisión de servicio"}</td>
+      <td>${Number(reg.kmInicial || 0)}</td>
+      <td>${Number(reg.kmFinal || 0)}</td>
+      <td><strong>${calcularKmRecorridos(reg)}</strong></td>
+      <td><button class="btn-eliminar" type="button" onclick="eliminarKm('${reg.id}')">Eliminar</button></td>
+    </tr>
+  `).join("") : `
+    <tr>
+      <td colspan="7">Todavía no hay registros de kilómetros cargados para este mes.</td>
+    </tr>
+  `;
+}
+
+async function guardarKm() {
+  const fecha = document.getElementById("fechaKm").value;
+  const movil = document.getElementById("movilKm").value.trim();
+  const kmInicial = Number(document.getElementById("kmInicial").value);
+  const kmFinal = Number(document.getElementById("kmFinal").value);
+  const tipo = document.getElementById("tipoKm").value;
+
+  if (!fecha || !movil || Number.isNaN(kmInicial) || Number.isNaN(kmFinal)) {
+    alert("Completá fecha, móvil, km inicial y km final.");
+    return;
+  }
+
+  if (kmFinal < kmInicial) {
+    alert("El kilómetro final no puede ser menor que el inicial.");
+    return;
+  }
+
+  const [anio, mes] = fecha.split("-").map(Number);
+
+  await addDoc(collection(db, "kilometrosPatrullas"), {
+    fecha,
+    anio,
+    mes,
+    periodo: `${anio}-${String(mes).padStart(2, "0")}`,
+    movil,
+    kmInicial,
+    kmFinal,
+    kmRecorridos: kmFinal - kmInicial,
+    tipo,
+    creadoEn: new Date().toISOString()
+  });
+
+  document.getElementById("fechaKm").value = "";
+  document.getElementById("movilKm").value = "";
+  document.getElementById("kmInicial").value = "";
+  document.getElementById("kmFinal").value = "";
+  document.getElementById("tipoKm").value = "patrulla";
+}
+
+window.eliminarKm = async function eliminarKm(id) {
+  if (!confirm("¿Eliminar este registro de kilómetros?")) return;
+  await deleteDoc(doc(db, "kilometrosPatrullas", id));
+};
+
+async function limpiarRegistrosKm() {
+  const periodo = periodoActualKm();
+  const registrosDelMes = registrosKm.filter(reg => String(reg.fecha || "").slice(0, 7) === periodo);
+
+  if (!registrosDelMes.length) {
+    alert("No hay registros de kilómetros para borrar en el mes actual.");
+    return;
+  }
+
+  if (!confirm("¿Querés borrar todos los registros de kilómetros del mes actual guardados en Firebase?")) return;
+
+  for (const reg of registrosDelMes) {
+    await deleteDoc(doc(db, "kilometrosPatrullas", reg.id));
+  }
+}
+
+onSnapshot(collection(db, "kilometrosPatrullas"), (snapshot) => {
+  registrosKm = [];
+  snapshot.forEach(docSnap => {
+    registrosKm.push({ id: docSnap.id, ...docSnap.data() });
+  });
+
+  registrosKm.sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
+  renderCuentaKm();
+});
+
+window.abrirKm = function abrirKm() {
+  kmSection.classList.remove("tablero-oculto");
+  kmOverlay.classList.remove("tablero-oculto");
+  kmSection.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+
+  const menu = document.getElementById("dropdownAcciones");
+  if (menu) menu.style.display = "none";
+
+  if (!document.getElementById("fechaKm").value) {
+    document.getElementById("fechaKm").value = new Date().toISOString().slice(0, 10);
+  }
+
+  renderCuentaKm();
+};
+
+window.cerrarKm = function cerrarKm() {
+  kmSection.classList.add("tablero-oculto");
+  kmOverlay.classList.add("tablero-oculto");
+  kmSection.setAttribute("aria-hidden", "true");
+
+  if (
+    tableroSection.classList.contains("tablero-oculto") &&
+    estadisticaSection.classList.contains("tablero-oculto") &&
+    historicoSection.classList.contains("tablero-oculto")
+  ) {
+    document.body.style.overflow = "";
+  }
+};
+
+if (guardarKmBtn) guardarKmBtn.addEventListener("click", guardarKm);
+if (limpiarKmBtn) limpiarKmBtn.addEventListener("click", limpiarRegistrosKm);
+if (cerrarKmBtn) cerrarKmBtn.addEventListener("click", cerrarKm);
+if (kmOverlay) kmOverlay.addEventListener("click", cerrarKm);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && kmSection && !kmSection.classList.contains("tablero-oculto")) {
+    cerrarKm();
   }
 });

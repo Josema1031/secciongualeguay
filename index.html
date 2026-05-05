@@ -23,6 +23,7 @@
   <button onclick="abrirTablero()">📋 Tablero de control</button>
   <button onclick="abrirEstadistica()">📊 Estadística mensual</button>
   <button onclick="abrirHistorico()">🗂️ Carga histórica</button>
+  <button onclick="abrirKm()">🚓 Registro de Pat y kilómetros</button>
 </div>
 
 
@@ -60,6 +61,7 @@
     <div id="tableroOverlay" class="tablero-overlay tablero-oculto"></div>
     <div id="estadisticaOverlay" class="tablero-overlay tablero-oculto"></div>
     <div id="historicoOverlay" class="tablero-overlay tablero-oculto"></div>
+    <div id="kmOverlay" class="tablero-overlay tablero-oculto"></div>
     <section id="tableroSection" class="tablero-modal tablero-oculto" aria-hidden="true">
       <div class="tablero-modal-header">
         <div>
@@ -143,6 +145,71 @@
         <button id="guardarHistoricoBtn" class="btn-tablero" type="button">💾 Guardar histórico</button>
       </div>
     </section>
+
+    <section id="kmSection" class="tablero-modal tablero-modal-compacto tablero-oculto" aria-hidden="true">
+      <div class="tablero-modal-header">
+        <div>
+          <h2>Cuenta kilómetros de patrullas</h2>
+          <p class="subtexto-panel">Registrá kilómetros por patrulla o comisión de servicio y consultá el resumen mensual.</p>
+        </div>
+        <button id="cerrarKmBtn" class="btn-cerrar-tablero" type="button" aria-label="Cerrar cuenta kilómetros">✕</button>
+      </div>
+
+      <div class="km-form-grid">
+        <label>
+          <span>Fecha</span>
+          <input type="date" id="fechaKm">
+        </label>
+
+        <label>
+          <span>Móvil / Patrulla</span>
+          <input type="text" id="movilKm" placeholder="Ej: Móvil 1">
+        </label>
+
+        <label>
+          <span>Kilómetro inicial</span>
+          <input type="number" id="kmInicial" min="0" placeholder="Ej: 12000">
+        </label>
+
+        <label>
+          <span>Kilómetro final</span>
+          <input type="number" id="kmFinal" min="0" placeholder="Ej: 12150">
+        </label>
+
+        <label>
+          <span>Tipo de servicio</span>
+          <select id="tipoKm">
+            <option value="patrulla">Patrulla/Comision</option>
+            <option value="comision">Comision Administrativo</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="km-acciones">
+        <button id="guardarKmBtn" class="btn-tablero" type="button">💾 Registrar kilómetros</button>
+        <button id="limpiarKmBtn" class="btn-tablero btn-tablero-secundario" type="button">🧹 Limpiar registros</button>
+      </div>
+
+      <div id="resumenKm" class="resumen-grid"></div>
+
+      <div class="tabla-tablero-wrap tabla-km-wrap">
+        <table class="tabla-tablero-control tabla-km">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Móvil</th>
+              <th>Tipo</th>
+              <th>Km inicial</th>
+              <th>Km final</th>
+              <th>Km recorridos</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="tablaKmBody"></tbody>
+        </table>
+      </div>
+    </section>
+
 
     <h2>Registros MTO</h2>
     <input type="text" id="buscar" placeholder="Buscar...">

@@ -634,51 +634,56 @@ th.orden-desc::after {
   left: auto;
   z-index: 2000;
 }
-
-.btn-menu-acciones{
+.btn-menu-acciones {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 3000;
   width: 48px;
   height: 48px;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #0f766e;
   color: #fff;
-  font-size: 26px;
+  font-size: 28px;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  box-shadow: 0 10px 24px rgba(0,0,0,.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
 }
 
-.dropdown-acciones{
+.dropdown-acciones {
+  position: fixed;
+  top: 72px;
+  left: 16px;
+  z-index: 2999;
   display: none;
-  margin-top: 10px;
-  min-width: 230px;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 14px 34px rgba(0,0,0,.16);
+  width: 260px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(0,0,0,.22);
   padding: 10px;
 }
 
-.dropdown-acciones button{
+.dropdown-acciones button {
   width: 100%;
   border: none;
   background: #f3f4f6;
   color: #111827;
-  padding: 12px 14px;
-  border-radius: 12px;
+  padding: 13px 14px;
+  border-radius: 14px;
   text-align: left;
   font-size: 15px;
   cursor: pointer;
   margin: 0 0 8px 0;
 }
 
-.dropdown-acciones button:last-child{
+.dropdown-acciones button:last-child {
   margin-bottom: 0;
 }
 
-.dropdown-acciones button:hover{
+.dropdown-acciones button:hover {
   background: #e5e7eb;
 }
 
@@ -702,5 +707,70 @@ th.orden-desc::after {
   .dropdown-acciones {
     min-width: 210px;
     max-width: calc(100vw - 24px);
+  }
+}
+
+/* === Cuenta kilómetros de patrullas === */
+.km-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.km-form-grid label {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.km-form-grid span {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.km-form-grid input,
+.km-form-grid select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+
+.km-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0 16px;
+}
+
+.tabla-km-wrap {
+  max-height: 320px;
+}
+
+.tabla-km td,
+.tabla-km th {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .km-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .km-acciones {
+    flex-direction: column;
+  }
+
+  .km-acciones button {
+    width: 100%;
   }
 }
