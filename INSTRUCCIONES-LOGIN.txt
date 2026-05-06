@@ -1,0 +1,25 @@
+SEGURIDAD AGREGADA AL PROYECTO
+
+1) Archivos modificados:
+- index.html: se agregó pantalla de ingreso con usuario/email y contraseña.
+- script.js: se agregó Firebase Authentication.
+- styles.css: se agregó diseño profesional para el login y botón cerrar sesión.
+- firestore.rules: reglas para que solo usuarios autenticados puedan leer/escribir datos.
+
+2) Activar usuario y contraseña en Firebase:
+- Entrar a Firebase Console.
+- Ir a Authentication.
+- Ir a Sign-in method.
+- Activar Email/Password.
+- Ir a Users / Usuarios.
+- Agregar usuario con email y contraseña.
+
+3) Publicar reglas de Firestore:
+- Ir a Firestore Database.
+- Ir a Rules / Reglas.
+- Copiar el contenido del archivo firestore.rules.
+- Publicar.
+
+IMPORTANTE:
+El login visual evita que entren desde la pantalla, pero la verdadera seguridad la dan las reglas de Firestore.
+Si no publicás las reglas, un usuario avanzado podría intentar leer datos directamente desde Firebase.

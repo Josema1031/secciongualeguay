@@ -205,7 +205,24 @@
 
       <div class="km-acciones">
         <button id="guardarKmBtn" class="btn-tablero" type="button">💾 Registrar kilómetros</button>
-        <button id="limpiarKmBtn" class="btn-tablero btn-tablero-secundario" type="button">🧹 Limpiar registros</button>
+        <button id="limpiarKmBtn" class="btn-tablero btn-tablero-secundario" type="button">🧹 Limpiar registros del mes seleccionado</button>
+      </div>
+
+      <div class="km-consulta-panel">
+        <div>
+          <h3>Consulta mensual</h3>
+          <p>Seleccioná mes y año para ver los kilómetros cargados, incluso de meses o años anteriores.</p>
+        </div>
+        <div class="km-filtros-grid">
+          <label>
+            <span>Mes</span>
+            <select id="mesKm"></select>
+          </label>
+          <label>
+            <span>Año</span>
+            <select id="anioKm"></select>
+          </label>
+        </div>
       </div>
 
       <div id="resumenKm" class="resumen-grid"></div>

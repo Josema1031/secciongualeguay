@@ -752,6 +752,59 @@ th.orden-desc::after {
   margin: 12px 0 16px;
 }
 
+.km-consulta-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 14px 0 16px;
+  padding: 14px;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  background: #eff6ff;
+}
+
+.km-consulta-panel h3 {
+  margin: 0 0 4px;
+  color: #1e3a8a;
+  font-size: 16px;
+}
+
+.km-consulta-panel p {
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+}
+
+.km-filtros-grid {
+  display: grid;
+  grid-template-columns: 150px 120px;
+  gap: 10px;
+  align-items: end;
+}
+
+.km-filtros-grid label {
+  display: block;
+}
+
+.km-filtros-grid span {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #374151;
+}
+
+.km-filtros-grid select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+
+
 .tabla-km-wrap {
   max-height: 320px;
 }
@@ -764,6 +817,15 @@ th.orden-desc::after {
 @media (max-width: 768px) {
   .km-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .km-consulta-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .km-filtros-grid {
+    grid-template-columns: 1fr 1fr;
   }
 
   .km-acciones {

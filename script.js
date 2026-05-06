@@ -177,7 +177,7 @@ function opcionesMeses() {
 
 function opcionesAnios() {
   let opciones = "";
-  for (let anio = anioActual - 4; anio <= anioActual + 1; anio++) {
+  for (let anio = anioActual - 10; anio <= anioActual + 1; anio++) {
     opciones += `<option value="${anio}">${anio}</option>`;
   }
   return opciones;
@@ -408,8 +408,6 @@ function detenerEscuchasProtegidas() {
   unsubscribeTablero = null;
   unsubscribeKm = null;
 }
-
-inicializarFiltrosEstadistica();
 
 // === BOTÓN MOSTRAR / OCULTAR TABLERO ===
 window.abrirTablero = function abrirTablero() {
@@ -648,12 +646,38 @@ const guardarKmBtn = document.getElementById("guardarKmBtn");
 const limpiarKmBtn = document.getElementById("limpiarKmBtn");
 const resumenKm = document.getElementById("resumenKm");
 const tablaKmBody = document.getElementById("tablaKmBody");
+const mesKm = document.getElementById("mesKm");
+const anioKm = document.getElementById("anioKm");
 
 let registrosKm = [];
 
 function periodoActualKm() {
   const hoy = new Date();
   return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function periodoSeleccionadoKm() {
+  const hoy = new Date();
+  const anio = anioKm ? Number(anioKm.value || hoy.getFullYear()) : hoy.getFullYear();
+  const mes = mesKm ? Number(mesKm.value || hoy.getMonth() + 1) : hoy.getMonth() + 1;
+  return clavePeriodo(anio, mes);
+}
+
+function inicializarFiltrosKm() {
+  if (!mesKm || !anioKm) return;
+
+  mesKm.innerHTML = opcionesMeses();
+  anioKm.innerHTML = opcionesAnios();
+
+  const hoy = new Date();
+  mesKm.value = String(hoy.getMonth() + 1);
+  anioKm.value = String(hoy.getFullYear());
+}
+
+function obtenerPeriodoRegistroKm(registro) {
+  if (registro.periodo) return String(registro.periodo);
+  if (registro.anio && registro.mes) return clavePeriodo(Number(registro.anio), Number(registro.mes));
+  return String(registro.fecha || "").slice(0, 7);
 }
 
 function normalizarFechaKm(fecha) {
@@ -670,8 +694,9 @@ function calcularKmRecorridos(registro) {
 function renderCuentaKm() {
   if (!resumenKm || !tablaKmBody) return;
 
-  const periodo = periodoActualKm();
-  const registrosDelMes = registrosKm.filter(reg => String(reg.fecha || "").slice(0, 7) === periodo);
+  const periodo = periodoSeleccionadoKm();
+  const [anioSeleccionado, mesSeleccionado] = periodo.split("-").map(Number);
+  const registrosDelMes = registrosKm.filter(reg => obtenerPeriodoRegistroKm(reg) === periodo);
 
   const totalPatrullas = registrosDelMes.length;
   const totalKm = registrosDelMes.reduce((acc, reg) => acc + calcularKmRecorridos(reg), 0);
@@ -682,7 +707,7 @@ function renderCuentaKm() {
 
   resumenKm.innerHTML = `
     <div class="resumen-card resumen-destacado">
-      <span class="resumen-titulo">Patrullas / servicios del mes</span>
+      <span class="resumen-titulo">Servicios de ${nombreMes(mesSeleccionado)} ${anioSeleccionado}</span>
       <strong class="resumen-numero">${totalPatrullas}</strong>
     </div>
     <div class="resumen-card">
@@ -694,7 +719,7 @@ function renderCuentaKm() {
       <strong class="resumen-numero">${kmPatrulla}</strong>
     </div>
     <div class="resumen-card">
-      <span class="resumen-titulo">Km Admistrativo</span>
+      <span class="resumen-titulo">Km Administrativo</span>
       <strong class="resumen-numero">${kmComision}</strong>
     </div>
   `;
@@ -711,7 +736,7 @@ function renderCuentaKm() {
     </tr>
   `).join("") : `
     <tr>
-      <td colspan="7">Todavía no hay registros de kilómetros cargados para este mes.</td>
+      <td colspan="7">No hay registros de kilómetros cargados para ${nombreMes(mesSeleccionado)} ${anioSeleccionado}.</td>
     </tr>
   `;
 }
@@ -753,6 +778,12 @@ async function guardarKm() {
   document.getElementById("kmInicial").value = "";
   document.getElementById("kmFinal").value = "";
   document.getElementById("tipoKm").value = "patrulla";
+
+  if (mesKm && anioKm) {
+    mesKm.value = String(mes);
+    anioKm.value = String(anio);
+    renderCuentaKm();
+  }
 }
 
 window.eliminarKm = async function eliminarKm(id) {
@@ -761,15 +792,16 @@ window.eliminarKm = async function eliminarKm(id) {
 };
 
 async function limpiarRegistrosKm() {
-  const periodo = periodoActualKm();
-  const registrosDelMes = registrosKm.filter(reg => String(reg.fecha || "").slice(0, 7) === periodo);
+  const periodo = periodoSeleccionadoKm();
+  const [anioSeleccionado, mesSeleccionado] = periodo.split("-").map(Number);
+  const registrosDelMes = registrosKm.filter(reg => obtenerPeriodoRegistroKm(reg) === periodo);
 
   if (!registrosDelMes.length) {
-    alert("No hay registros de kilómetros para borrar en el mes actual.");
+    alert(`No hay registros de kilómetros para borrar en ${nombreMes(mesSeleccionado)} ${anioSeleccionado}.`);
     return;
   }
 
-  if (!confirm("¿Querés borrar todos los registros de kilómetros del mes actual guardados en Firebase?")) return;
+  if (!confirm(`¿Querés borrar todos los registros de kilómetros de ${nombreMes(mesSeleccionado)} ${anioSeleccionado} guardados en Firebase?`)) return;
 
   for (const reg of registrosDelMes) {
     await deleteDoc(doc(db, "kilometrosPatrullas", reg.id));
@@ -822,10 +854,16 @@ window.cerrarKm = function cerrarKm() {
   }
 };
 
+if (mesKm) mesKm.addEventListener("change", renderCuentaKm);
+if (anioKm) anioKm.addEventListener("change", renderCuentaKm);
 if (guardarKmBtn) guardarKmBtn.addEventListener("click", guardarKm);
 if (limpiarKmBtn) limpiarKmBtn.addEventListener("click", limpiarRegistrosKm);
 if (cerrarKmBtn) cerrarKmBtn.addEventListener("click", cerrarKm);
 if (kmOverlay) kmOverlay.addEventListener("click", cerrarKm);
+
+// Inicializamos los filtros recién cuando todas las variables y funciones ya existen.
+inicializarFiltrosEstadistica();
+inicializarFiltrosKm();
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && kmSection && !kmSection.classList.contains("tablero-oculto")) {
