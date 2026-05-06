@@ -13,13 +13,27 @@
   <link rel="apple-touch-icon" href="image/logo-512.png.jpg">
 </head>
 
-<body>
+<body class="auth-loading">
 
-  <button id="btnMenuAcciones" class="btn-menu-acciones" onclick="toggleMenuAcciones()">
+  <section id="loginScreen" class="login-screen">
+    <form id="loginForm" class="login-card">
+      <img src="image/logo-192.png.jpg" alt="Logo Sección Gualeguay" class="login-logo">
+      <h1>Ingreso al Sistema</h1>
+      <p>Sistema de Registro MTO Sección "Gualeguay"</p>
+
+      <input type="email" id="loginEmail" placeholder="Usuario / Email" autocomplete="username" required>
+      <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="current-password" required>
+
+      <button type="submit">Ingresar</button>
+      <small id="loginError" class="login-error"></small>
+    </form>
+  </section>
+
+  <button id="btnMenuAcciones" class="btn-menu-acciones app-protegida" onclick="toggleMenuAcciones()">
     ☰
   </button>
 
- <div id="dropdownAcciones" class="dropdown-acciones">
+ <div id="dropdownAcciones" class="dropdown-acciones app-protegida">
   <button onclick="abrirTablero()">📋 Tablero de control</button>
   <button onclick="abrirEstadistica()">📊 Estadística mensual</button>
   <button onclick="abrirHistorico()">🗂️ Carga histórica</button>
@@ -27,7 +41,11 @@
 </div>
 
 
-  <div class="contenedor-principal">
+  <div class="contenedor-principal app-protegida">
+    <div class="barra-usuario">
+      <span id="usuarioActualTexto"></span>
+      <button id="btnSalir" type="button">Cerrar sesión</button>
+    </div>
     <h1>Sistema de Registro MTO Sección "Gualeguay"</h1>
 
     <!-- Formulario -->

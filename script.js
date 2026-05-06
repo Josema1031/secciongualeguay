@@ -1,6 +1,12 @@
 // === IMPORTS DE FIREBASE ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
   getFirestore,
   collection,
   addDoc,
@@ -26,6 +32,7 @@ const firebaseConfig = {
 // === INICIALIZAR FIREBASE ===
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // === VARIABLES DEL SISTEMA ===
 const form = document.getElementById("registroForm");
@@ -52,6 +59,16 @@ const mesHistorico = document.getElementById("mesHistorico");
 const anioHistorico = document.getElementById("anioHistorico");
 const historicoCampos = document.getElementById("historicoCampos");
 const guardarHistoricoBtn = document.getElementById("guardarHistoricoBtn");
+const loginForm = document.getElementById("loginForm");
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
+const btnSalir = document.getElementById("btnSalir");
+const usuarioActualTexto = document.getElementById("usuarioActualTexto");
+let unsubscribeRegistros = null;
+let unsubscribeTablero = null;
+let unsubscribeKm = null;
+let appYaInicializada = false;
 
 const CAMPOS_TABLERO = [
   { key: "preventivo", label: "Preventivo" },
@@ -355,27 +372,44 @@ async function actualizarTableroControl(numero, campo, valor) {
   }
 }
 
-// === CARGAR REGISTROS EN VIVO (onSnapshot) ===
-onSnapshot(collection(db, "registros"), (snapshot) => {
-  registros = [];
-  snapshot.forEach(docSnap => {
-    registros.push({ id: docSnap.id, ...docSnap.data() });
-  });
-  mostrarRegistros();
-});
+// === CARGAR REGISTROS EN VIVO SOLO SI EL USUARIO INICIÓ SESIÓN ===
+function iniciarEscuchasProtegidas() {
+  if (unsubscribeRegistros || unsubscribeTablero) return;
 
-onSnapshot(collection(db, "tableroControl"), (snapshot) => {
-  tableroControl = [];
-  snapshot.forEach(docSnap => {
-    tableroControl.push({ id: docSnap.id, ...docSnap.data() });
+  unsubscribeRegistros = onSnapshot(collection(db, "registros"), (snapshot) => {
+    registros = [];
+    snapshot.forEach(docSnap => {
+      registros.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    mostrarRegistros();
+  }, (error) => {
+    console.error("Error al leer registros:", error);
+    alert("No se pudieron cargar los registros. Revisá las reglas de Firebase.");
   });
 
-  tableroControl.sort((a, b) => Number(a.numero) - Number(b.numero));
-  renderTableroControl();
-});
+  unsubscribeTablero = onSnapshot(collection(db, "tableroControl"), (snapshot) => {
+    tableroControl = [];
+    snapshot.forEach(docSnap => {
+      tableroControl.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    tableroControl.sort((a, b) => Number(a.numero) - Number(b.numero));
+    renderTableroControl();
+  }, (error) => {
+    console.error("Error al leer tableroControl:", error);
+  });
+}
+
+function detenerEscuchasProtegidas() {
+  if (unsubscribeRegistros) unsubscribeRegistros();
+  if (unsubscribeTablero) unsubscribeTablero();
+  if (unsubscribeKm) unsubscribeKm();
+  unsubscribeRegistros = null;
+  unsubscribeTablero = null;
+  unsubscribeKm = null;
+}
 
 inicializarFiltrosEstadistica();
-cargarDatosHistoricosFormulario();
 
 // === BOTÓN MOSTRAR / OCULTAR TABLERO ===
 window.abrirTablero = function abrirTablero() {
@@ -742,15 +776,21 @@ async function limpiarRegistrosKm() {
   }
 }
 
-onSnapshot(collection(db, "kilometrosPatrullas"), (snapshot) => {
-  registrosKm = [];
-  snapshot.forEach(docSnap => {
-    registrosKm.push({ id: docSnap.id, ...docSnap.data() });
-  });
+function iniciarEscuchaKm() {
+  if (unsubscribeKm) return;
 
-  registrosKm.sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
-  renderCuentaKm();
-});
+  unsubscribeKm = onSnapshot(collection(db, "kilometrosPatrullas"), (snapshot) => {
+    registrosKm = [];
+    snapshot.forEach(docSnap => {
+      registrosKm.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    registrosKm.sort((a, b) => String(b.fecha || "").localeCompare(String(a.fecha || "")));
+    renderCuentaKm();
+  }, (error) => {
+    console.error("Error al leer kilometrosPatrullas:", error);
+  });
+}
 
 window.abrirKm = function abrirKm() {
   kmSection.classList.remove("tablero-oculto");
@@ -790,5 +830,53 @@ if (kmOverlay) kmOverlay.addEventListener("click", cerrarKm);
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && kmSection && !kmSection.classList.contains("tablero-oculto")) {
     cerrarKm();
+  }
+});
+
+
+// === SEGURIDAD: LOGIN CON USUARIO Y CONTRASEÑA ===
+if (loginForm) {
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    loginError.textContent = "";
+
+    try {
+      await signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginPassword.value);
+      loginForm.reset();
+    } catch (error) {
+      console.error("Error de ingreso:", error);
+      loginError.textContent = "Usuario o contraseña incorrectos.";
+    }
+  });
+}
+
+if (btnSalir) {
+  btnSalir.addEventListener("click", async () => {
+    await signOut(auth);
+  });
+}
+
+onAuthStateChanged(auth, async (user) => {
+  document.body.classList.remove("auth-loading");
+
+  if (user) {
+    document.body.classList.add("auth-ok");
+    if (usuarioActualTexto) usuarioActualTexto.textContent = `Usuario: ${user.email}`;
+
+    iniciarEscuchasProtegidas();
+    iniciarEscuchaKm();
+
+    if (!appYaInicializada) {
+      appYaInicializada = true;
+      await cargarDatosHistoricosFormulario();
+    }
+  } else {
+    document.body.classList.remove("auth-ok");
+    if (usuarioActualTexto) usuarioActualTexto.textContent = "";
+    detenerEscuchasProtegidas();
+    registros = [];
+    tableroControl = [];
+    registrosKm = [];
+    mostrarRegistros([]);
   }
 });
