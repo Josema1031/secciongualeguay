@@ -19,7 +19,7 @@
     <form id="loginForm" class="login-card">
       <img src="image/logo-192.png.jpg" alt="Logo Sección Gualeguay" class="login-logo">
       <h1>Ingreso al Sistema</h1>
-      <p>Sistema de Registro MTO Sección "Gualeguay"</p>
+      <p>Registro de MTO Sección "Gualeguay"</p>
 
       <input type="email" id="loginEmail" placeholder="Usuario / Email" autocomplete="username" required>
       <input type="password" id="loginPassword" placeholder="Contraseña" autocomplete="current-password" required>
@@ -33,12 +33,12 @@
     ☰
   </button>
 
- <div id="dropdownAcciones" class="dropdown-acciones app-protegida">
-  <button onclick="abrirTablero()">📋 Tablero de control</button>
-  <button onclick="abrirEstadistica()">📊 Estadística mensual</button>
-  <button onclick="abrirHistorico()">🗂️ Carga histórica</button>
-  <button onclick="abrirKm()">🚓 Registro de Pat y kilómetros</button>
-</div>
+  <div id="dropdownAcciones" class="dropdown-acciones app-protegida">
+    <button onclick="abrirTablero()">📋 Tablero de control</button>
+    <button onclick="abrirEstadistica()">📊 Estadística mensual</button>
+    <button onclick="abrirHistorico()">🗂️ Carga histórica</button>
+    <button onclick="abrirKm()">🚓 Registro de Pat y kilómetros</button>
+  </div>
 
 
   <div class="contenedor-principal app-protegida">
@@ -46,7 +46,7 @@
       <span id="usuarioActualTexto"></span>
       <button id="btnSalir" type="button">Cerrar sesión</button>
     </div>
-    <h1>Sistema de Registro MTO Sección "Gualeguay"</h1>
+    <h1>Registro de MTO Sección "Gualeguay"</h1>
 
     <!-- Formulario -->
     <form id="registroForm">
@@ -167,10 +167,12 @@
     <section id="kmSection" class="tablero-modal tablero-modal-compacto tablero-oculto" aria-hidden="true">
       <div class="tablero-modal-header">
         <div>
-          <h2>Cuenta kilómetros de patrullas</h2>
-          <p class="subtexto-panel">Registrá kilómetros por patrulla o comisión de servicio y consultá el resumen mensual.</p>
+          <h2>Registro de kilómetros de patrullas</h2>
+          <p class="subtexto-panel">Registrá kilómetros por patrulla o comisión de servicio y consultá el resumen
+            mensual.</p>
         </div>
-        <button id="cerrarKmBtn" class="btn-cerrar-tablero" type="button" aria-label="Cerrar cuenta kilómetros">✕</button>
+        <button id="cerrarKmBtn" class="btn-cerrar-tablero" type="button"
+          aria-label="Cerrar cuenta kilómetros">✕</button>
       </div>
 
       <div class="km-form-grid">
@@ -181,16 +183,20 @@
 
         <label>
           <span>Móvil / Patrulla</span>
-          <input type="text" id="movilKm" placeholder="Ej: Móvil 1">
+
+          <select id="movilKm">
+            <option value="38729" selected>🚓 NIGN 38729</option>
+            
+          </select>
         </label>
 
         <label>
-          <span>Kilómetro inicial</span>
+          <span>Kilómetro Salida</span>
           <input type="number" id="kmInicial" min="0" placeholder="Ej: 12000">
         </label>
 
         <label>
-          <span>Kilómetro final</span>
+          <span>Kilómetro Entrada</span>
           <input type="number" id="kmFinal" min="0" placeholder="Ej: 12150">
         </label>
 
@@ -205,7 +211,8 @@
 
       <div class="km-acciones">
         <button id="guardarKmBtn" class="btn-tablero" type="button">💾 Registrar kilómetros</button>
-        <button id="limpiarKmBtn" class="btn-tablero btn-tablero-secundario" type="button">🧹 Limpiar registros del mes seleccionado</button>
+        <button id="limpiarKmBtn" class="btn-tablero btn-tablero-secundario" type="button">🧹 Limpiar registros del mes
+          seleccionado</button>
       </div>
 
       <div class="km-consulta-panel">
@@ -234,8 +241,8 @@
               <th>Fecha</th>
               <th>Móvil</th>
               <th>Tipo</th>
-              <th>Km inicial</th>
-              <th>Km final</th>
+              <th>Km Salida</th>
+              <th>Km Entrada</th>
               <th>Km recorridos</th>
               <th>Acción</th>
             </tr>
